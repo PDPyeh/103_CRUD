@@ -3,9 +3,7 @@ const mysql = require('mysql2');
 const path = require('path');
 const app = express();
 
-const PORT = 3000;
-
-
+const PORT = 3001;
 
 app.use(express.json());
 
@@ -54,6 +52,40 @@ app.post('/biodata', (req, res) => {
     });
   });
 });
+
+// UPDATE (PUT) biodata by id
+app.put('/biodata/:id', (req, res) => {
+  const { id } = req.params;
+  const { nama, alamat, agama } = req.body || {};
+
+  // minimal satu field diisi
+  const fields = [];
+  const values = [];
+
+  if (typeof nama !== 'undefined') { fields.push('nama = ?'); values.push(nama); }
+  if (typeof alamat !== 'undefined') { fields.push('alamat = ?'); values.push(alamat); }
+  if (typeof agama !== 'undefined') { fields.push('agama = ?'); values.push(agama); }
+
+  if (fields.length === 0) {
+    return res.status(400).json({ message: 'Isi minimal salah satu field: nama/alamat/agama' });
+  }
+
+  const sql = `UPDATE biodata SET ${fields.join(', ')} WHERE id = ?`;
+  values.push(id);
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'Gagal update data' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Data tidak ditemukan' });
+    }
+    res.json({ message: 'Berhasil update data', id: Number(id) });
+  });
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
