@@ -85,7 +85,21 @@ app.put('/biodata/:id', (req, res) => {
   });
 });
 
+// DELETE biodata by id
+app.delete('/biodata/:id', (req, res) => {
+  const { id } = req.params;
 
+  db.query('DELETE FROM biodata WHERE id = ?', [id], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'Gagal hapus data' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Data tidak ditemukan' });
+    }
+    res.json({ message: 'Berhasil hapus data', id: Number(id) });
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
